@@ -920,6 +920,4 @@ Package-private delta compression utility:
 
 ---
 
-## Fetch Failures
-
-No files failed to fetch during inventory.
+*All 57 source files verified against the actual repository source code.*
