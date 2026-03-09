@@ -1,7 +1,7 @@
 # Centrifuge-Java API Knowledge Base
 
 **Library**: `centrifuge-java` — WebSocket client for [Centrifugo](https://github.com/centrifugal/centrifugo) server and [Centrifuge](https://github.com/centrifugal/centrifuge) library  
-**Latest version at time of writing**: 0.3.1  
+**Latest version at time of writing**: 0.5.0  
 **Compatibility**: Centrifugo v6, v5, v4; Centrifuge ≥ 0.25.0. For Centrifugo v2/v3 or Centrifuge < 0.25.0 use v0.1.0.  
 **Maven**: `io.github.centrifugal:centrifuge-java`  
 **Protocol**: Protobuf over WebSocket (negotiated via `Sec-WebSocket-Protocol: centrifuge-protobuf`)  
@@ -732,6 +732,11 @@ public void onJoin(Client client, ServerJoinEvent event) {
 
 | Version | Change |
 |---|---|
+| **0.5.0** | Custom `OkHttpClient` support added via `Options.setOkHttpClient()`. OkHttp dependency bumped to **4.12.0**. When `okHttpClient` is set, individual proxy/dns/SSL options are ignored. |
+| **0.4.3** | Custom `SSLSocketFactory` support added via `Options.setSSLSocketFactory()` / `Options.setTrustManager()`. |
+| **0.4.2** | Delta compression (Fossil) support added: `SubscriptionOptions.setDelta("fossil")`. New `since` option (`SubscriptionOptions.setSince(StreamPosition)`) to set starting stream position for recovery. Protobuf-javalite version bumped. |
+| **0.4.1** | `Publication.getInfo()` / `PublicationEvent.getInfo()` now accessible (was missing previously). |
+| **0.4.0** | Dependency changed: `streamsupport-cfuture` replaced with `streamsupport-minifuture`. Users who manually excluded `cfuture` must update their exclusion. `ErrorEvent` gains a new `httpResponseCode: Integer` field (non-null only on HTTP/transport failures). |
 | **0.3.0** | Token semantics changed: empty string from `ConnectionTokenGetter` no longer disconnects. Use `UnauthorizedException` for explicit disconnect. `setToken` method restored. |
 | **0.2.6** | `newSubscription` overload with `SubscriptionOptions` added. Unsubscribe API fixed (was using legacy command format). |
 | **0.2.2** | **Major rewrite**: New protocol iteration for Centrifugo v4. Complete API redesign to match [SDK API spec](https://centrifugal.dev/docs/transports/client_api). v0.2.0 and v0.2.1 were broken. |
@@ -821,7 +826,10 @@ Implements **full-jitter exponential backoff** per [AWS Architecture Blog](https
 
 ```java
 public long duration(int step, int minDelay, int maxDelay) {
-    double currentStep = Math.min(step, 31);
+    // Full jitter technique.
+    // https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+    double currentStep = step;
+    if (currentStep > 31) { currentStep = 31; }
     double min = Math.min(maxDelay, minDelay * Math.pow(2, currentStep));
     int val = (int)(Math.random() * (min + 1));
     return Math.min(maxDelay, minDelay + val);
@@ -905,7 +913,7 @@ Package-private delta compression utility:
 | 52 | `RPCResult.java` | ~400 B | Data — RPC result |
 | 53 | `CompletionCallback.java` | ~229 B | Callbacks — completion |
 | 54 | `ResultCallback.java` | ~241 B | Callbacks — result |
-| 55 | `ServerSubscription.java` | (pkg-private) | Internal — server sub state |
+| 55 | `ServerSubscription.java` | ~764 B | Internal — server sub state |
 | 56 | `Dns.java` | ~303 B | Config — DNS resolver interface |
 
 ### Internal Package: `io.github.centrifugal.centrifuge.internal.backoff`
