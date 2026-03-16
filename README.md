@@ -80,7 +80,7 @@ fun disconnect() {
     val subsSnapshot = client.getSubscriptions()   // snapshot of registry
     subsSnapshot.values.forEach { sub ->
         sub.unsubscribe()
-        client.removeSubscription(sub)        // also removes from registry
+        client.removeSubscription(sub)        // unsubscribes and removes from registry
     }
     client.disconnect()                       // stops transport; no reconnect
 }
@@ -89,7 +89,7 @@ fun disconnect() {
 Notes:
 - `client.getSubscriptions()` returns a snapshot map (safe to iterate) of current subscriptions.
 - `removeSubscription` unsubscribes the server-side subscription and drops it from the registry.
-- Use `client.close(timeoutMs)` if you also want to shut down the client executors after disconnecting.
+- Call `client.close(timeoutMs)` when you are shutting down the app and want to stop the client's executors after disconnecting (create a new Client instance to connect again later).
 
 ## Usage in background
 
