@@ -77,7 +77,7 @@ sub.subscribe()
 
 // Graceful disconnect: snapshot current subs, unsubscribe/remove, then disconnect transport
 fun disconnect() {
-    val subsSnapshot = client.subscriptions   // Kotlin view of Client.getSubscriptions()
+    val subsSnapshot = client.getSubscriptions()   // snapshot of registry
     subsSnapshot.values.forEach { sub ->
         sub.unsubscribe()
         client.removeSubscription(sub)        // also removes from registry
@@ -87,7 +87,7 @@ fun disconnect() {
 ```
 
 Notes:
-- `client.subscriptions` is a snapshot map (safe to iterate) backed by `Client.getSubscriptions()`.
+- `client.getSubscriptions()` returns a snapshot map (safe to iterate) of current subscriptions.
 - `removeSubscription` unsubscribes the server-side subscription and drops it from the registry.
 - Use `client.close(timeoutMs)` if you also want to shut down the client executors after disconnecting.
 
