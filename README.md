@@ -79,7 +79,6 @@ sub.subscribe()
 fun disconnect() {
     val subsSnapshot = client.getSubscriptions()   // snapshot of registry
     subsSnapshot.values.forEach { sub ->
-        sub.unsubscribe()
         client.removeSubscription(sub)        // unsubscribes and removes from registry
     }
     client.disconnect()                       // stops transport; no reconnect
