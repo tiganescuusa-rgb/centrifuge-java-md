@@ -42,6 +42,61 @@ To use with Android don't forget to set INTERNET permission to `AndroidManifest.
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
+### Kotlin/Android quick start (no library changes needed)
+
+The public API already exposes everything you need to manage the connection lifecycle from Kotlin:
+
+```kotlin
+val WS_ENDPOINT = "wss://your-server.com/connection/websocket"
+val initialToken = "<first connection token from your backend>"
+val myOkHttp: OkHttpClient = mySharedOkHttpClient            // optional; omit to use library default
+val scope: CoroutineScope = yourCoroutineScope               // for token refresh
+val api: TokenApi = yourTokenService                         // replace with your API client
+
+// Configure your client once (inject your OkHttpClient if needed)
+val opts = Options().apply {
+    token = initialToken
+    okHttpClient = myOkHttp
+    tokenGetter = object : ConnectionTokenGetter() {
+        override fun getConnectionToken(event: ConnectionTokenEvent, tokenCallback: TokenCallback) {
+            scope.launch {
+                runCatching { api.getNewToken() }
+                    .onSuccess { tokenCallback.Done(null, it.token) }
+                    .onFailure { tokenCallback.Done(it, null) }
+            }
+        }
+    }
+}
+
+val client = Client(WS_ENDPOINT, opts, object : EventListener() {/* handle events */})
+
+// Start connecting
+client.connect()
+
+// Subscribe to a channel
+val sub = client.newSubscription("chat:index", SubscriptionOptions(), object : SubscriptionEventListener() {
+    override fun onPublication(sub: Subscription, event: PublicationEvent) {
+        // handle data
+    }
+})
+sub.subscribe()
+
+// Graceful disconnect: snapshot current subs, unsubscribe/remove, then disconnect transport
+fun disconnect() {
+    val subsSnapshot = client.getSubscriptions()   // snapshot of registry
+    subsSnapshot.values.forEach { sub ->
+        client.removeSubscription(sub)        // unsubscribes and removes from registry
+    }
+    client.disconnect()                       // stops transport; no reconnect
+}
+```
+
+Notes:
+- Call `disconnect()` from your cleanup point (for example, `Activity.onDestroy()` or `ViewModel.onCleared()`).
+- `client.getSubscriptions()` returns a snapshot map (safe to iterate) of current subscriptions.
+- `removeSubscription` unsubscribes the server-side subscription and drops it from the registry.
+- Call `client.close(timeoutMs)` when you are shutting down the app and want to stop the client's executors after disconnecting (create a new Client instance to connect again later). For example, `client.close(5_000)` waits up to 5 seconds for executor shutdown.
+
 ## Usage in background
 
 When a mobile application goes to the background there are OS-specific limitations for established persistent connections - which can be silently closed shortly. Thus in most cases you need to disconnect from a server when app moves to the background and connect again when app goes to the foreground.

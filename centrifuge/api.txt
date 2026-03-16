@@ -8,6 +8,7 @@ package io.github.centrifugal.centrifuge {
     method public void disconnect();
     method public io.github.centrifugal.centrifuge.ClientState! getState();
     method public io.github.centrifugal.centrifuge.Subscription! getSubscription(String);
+    method public Map<String,io.github.centrifugal.centrifuge.Subscription!> getSubscriptions();
     method public void history(String, io.github.centrifugal.centrifuge.HistoryOptions!, io.github.centrifugal.centrifuge.ResultCallback<io.github.centrifugal.centrifuge.HistoryResult!>!);
     method public io.github.centrifugal.centrifuge.Subscription! newSubscription(String, io.github.centrifugal.centrifuge.SubscriptionOptions!, io.github.centrifugal.centrifuge.SubscriptionEventListener!) throws io.github.centrifugal.centrifuge.DuplicateSubscriptionException;
     method public io.github.centrifugal.centrifuge.Subscription! newSubscription(String, io.github.centrifugal.centrifuge.SubscriptionEventListener!) throws io.github.centrifugal.centrifuge.DuplicateSubscriptionException;
@@ -403,4 +404,3 @@ package io.github.centrifugal.centrifuge {
   }
 
 }
-

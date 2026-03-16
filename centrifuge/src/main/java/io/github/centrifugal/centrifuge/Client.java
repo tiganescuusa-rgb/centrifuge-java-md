@@ -609,6 +609,17 @@ public class Client {
     }
 
     /**
+     * Returns a snapshot of current subscriptions registry.
+     *
+     * @return map keyed by channel with corresponding Subscription instances.
+     */
+    public Map<String, Subscription> getSubscriptions() {
+        synchronized (this.subs) {
+            return new HashMap<>(this.subs);
+        }
+    }
+
+    /**
      * Say Client that Subscription should be removed from internal registry. Subscription will be
      * automatically unsubscribed before removing.
      *
