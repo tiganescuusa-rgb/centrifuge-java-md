@@ -47,9 +47,12 @@ To use with Android don't forget to set INTERNET permission to `AndroidManifest.
 The public API already exposes everything you need to manage the connection lifecycle from Kotlin:
 
 ```kotlin
-// initialToken: first connection token from your backend
-// myOkHttp: optional shared OkHttpClient (omit to use library default)
-// scope: your CoroutineScope for async work; api: your token refresh client
+val WS_ENDPOINT = "wss://your-server.com/connection/websocket"
+val initialToken = "<first connection token from your backend>"
+val myOkHttp: OkHttpClient = mySharedOkHttpClient            // optional; omit to use library default
+val scope: CoroutineScope = yourCoroutineScope               // for token refresh
+val api: TokenApi = yourTokenService                         // replace with your API client
+
 // Configure your client once (inject your OkHttpClient if needed)
 val opts = Options().apply {
     token = initialToken
