@@ -76,4 +76,18 @@ public class ClientTest {
         Subscription sub2 = client.newSubscription("test-channel", new SubscriptionOptions(), null);
         assertNotNull(sub2);
     }
+
+    @Test
+    public void testGetSubscriptionsReturnsSnapshot() throws DuplicateSubscriptionException {
+        Client client = new Client("ws://localhost:8000/connection/websocket", new Options(), null);
+        Subscription sub = client.newSubscription("test-channel", new SubscriptionOptions(), null);
+
+        java.util.Map<String, Subscription> subs = client.getSubscriptions();
+        assertTrue(subs.containsKey("test-channel"));
+        assertSame(sub, subs.get("test-channel"));
+
+        // Modifying returned map should not affect client's internal registry.
+        subs.clear();
+        assertNotNull(client.getSubscription("test-channel"));
+    }
 }
