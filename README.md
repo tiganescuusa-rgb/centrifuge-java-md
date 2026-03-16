@@ -47,6 +47,9 @@ To use with Android don't forget to set INTERNET permission to `AndroidManifest.
 The public API already exposes everything you need to manage the connection lifecycle from Kotlin:
 
 ```kotlin
+// initialToken: first connection token from your backend
+// myOkHttp: optional shared OkHttpClient (omit to use library default)
+// scope: your CoroutineScope for async work; api: your token refresh client
 // Configure your client once (inject your OkHttpClient if needed)
 val opts = Options().apply {
     token = initialToken
