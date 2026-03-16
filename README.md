@@ -42,6 +42,55 @@ To use with Android don't forget to set INTERNET permission to `AndroidManifest.
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
+### Kotlin/Android quick start (no library changes needed)
+
+The public API already exposes everything you need to manage the connection lifecycle from Kotlin:
+
+```kotlin
+// Configure your client once (inject your OkHttpClient if needed)
+val opts = Options().apply {
+    token = initialToken
+    okHttpClient = myOkHttp
+    tokenGetter = object : ConnectionTokenGetter() {
+        override fun getConnectionToken(event: ConnectionTokenEvent, tokenCallback: TokenCallback) {
+            scope.launch {
+                runCatching { api.getNewToken() }
+                    .onSuccess { tokenCallback.Done(null, it.token) }
+                    .onFailure { tokenCallback.Done(it, null) }
+            }
+        }
+    }
+}
+
+val client = Client(WS_ENDPOINT, opts, object : EventListener() {/* handle events */})
+
+// Start connecting
+client.connect()
+
+// Subscribe to a channel
+val sub = client.newSubscription("chat:index", SubscriptionOptions(), object : SubscriptionEventListener() {
+    override fun onPublication(sub: Subscription, event: PublicationEvent) {
+        // handle data
+    }
+})
+sub.subscribe()
+
+// Graceful disconnect: snapshot current subs, unsubscribe/remove, then disconnect transport
+fun disconnect() {
+    val subsSnapshot = client.subscriptions   // Kotlin view of Client.getSubscriptions()
+    subsSnapshot.values.forEach { sub ->
+        sub.unsubscribe()
+        client.removeSubscription(sub)        // also removes from registry
+    }
+    client.disconnect()                       // stops transport; no reconnect
+}
+```
+
+Notes:
+- `client.subscriptions` is a snapshot map (safe to iterate) backed by `Client.getSubscriptions()`.
+- `removeSubscription` unsubscribes the server-side subscription and drops it from the registry.
+- Use `client.close(timeoutMs)` if you also want to shut down the client executors after disconnecting.
+
 ## Usage in background
 
 When a mobile application goes to the background there are OS-specific limitations for established persistent connections - which can be silently closed shortly. Thus in most cases you need to disconnect from a server when app moves to the background and connect again when app goes to the foreground.
