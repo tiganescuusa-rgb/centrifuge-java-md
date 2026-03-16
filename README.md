@@ -89,9 +89,10 @@ fun disconnect() {
 ```
 
 Notes:
+- Call `disconnect()` from your cleanup point (for example, `Activity.onDestroy()` or `ViewModel.onCleared()`).
 - `client.getSubscriptions()` returns a snapshot map (safe to iterate) of current subscriptions.
 - `removeSubscription` unsubscribes the server-side subscription and drops it from the registry.
-- Call `client.close(timeoutMs)` when you are shutting down the app and want to stop the client's executors after disconnecting (create a new Client instance to connect again later).
+- Call `client.close(timeoutMs)` when you are shutting down the app and want to stop the client's executors after disconnecting (create a new Client instance to connect again later). For example, `client.close(5_000)` waits up to 5 seconds for executor shutdown.
 
 ## Usage in background
 
